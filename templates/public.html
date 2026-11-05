@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{ p.title }} · Proposal for {{ p.client_name }}</title>
+<style>
+  body { margin:0; background:#f4f1ec; color:#1f2328; font:16px/1.6 Georgia,"Times New Roman",serif; }
+  .sheet { max-width:760px; margin:30px auto; background:#fff; padding:48px 52px; border:1px solid #e7e2da; border-radius:6px; }
+  h1 { font-size:30px; margin:0 0 4px; line-height:1.2; }
+  .meta { color:#6b7280; font-family:-apple-system,"Segoe UI",sans-serif; font-size:14px; }
+  h2 { font-family:-apple-system,"Segoe UI",sans-serif; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:#6b7280; margin:34px 0 8px; }
+  .pre { white-space:pre-wrap; }
+  table { width:100%; border-collapse:collapse; font-family:-apple-system,"Segoe UI",sans-serif; font-size:15px; }
+  th, td { padding:9px 6px; border-bottom:1px solid #e7e2da; text-align:left; }
+  th { font-size:12px; text-transform:uppercase; color:#6b7280; letter-spacing:.04em; }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+  tfoot td { font-weight:700; font-size:17px; border-bottom:0; }
+  .badge { font-family:-apple-system,"Segoe UI",sans-serif; font-size:13px; font-weight:600; padding:2px 10px; border-radius:999px; background:#f3f4f6; }
+  .printbar { text-align:center; font-family:-apple-system,"Segoe UI",sans-serif; margin:-10px 0 30px; }
+  .printbar button { background:#fff; border:1px solid #d6d0c6; border-radius:8px; padding:8px 14px; cursor:pointer; font:inherit; }
+  @media (max-width:640px){ .sheet { margin:0; padding:28px 20px; border:0; border-radius:0; } }
+  @media print { body { background:#fff; } .sheet { border:0; margin:0; padding:0; } .printbar { display:none; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="meta">Proposal for {{ p.client_name }} · from {{ owner_email }}</div>
+  <h1>{{ p.title }}</h1>
+  <div class="meta"><span class="badge">{{ p.status }}</span>{% if p.valid_until %} &nbsp; Valid until {{ p.valid_until }}{% endif %}</div>
+
+  {% if p.scope %}<h2>Scope of work</h2><div class="pre">{{ p.scope }}</div>{% endif %}
+
+  {% if p['items'] %}
+  <h2>Pricing</h2>
+  <table>
+    <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead>
+    <tbody>
+    {% for it in p['items'] %}
+      <tr><td>{{ it.description }}</td><td class="num">{{ '%g' % it.qty }}</td><td class="num">{{ it.rate|money(p.currency) }}</td><td class="num">{{ (it.qty * it.rate)|money(p.currency) }}</td></tr>
+    {% endfor %}
+    </tbody>
+    <tfoot><tr><td colspan="3" class="num">Total</td><td class="num">{{ p.total|money(p.currency) }}</td></tr></tfoot>
+  </table>
+  {% endif %}
+
+  {% if p.terms %}<h2>Terms</h2><div class="pre">{{ p.terms }}</div>{% endif %}
+</div>
+<div class="printbar"><button onclick="window.print()">Print or save as PDF</button></div>
+</body>
+</html>

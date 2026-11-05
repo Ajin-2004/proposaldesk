@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Connect Claude · ProposalDesk{% endblock %}
+{% block content %}
+<h1>Connect your Claude</h1>
+<p class="muted">Once connected, you can create and manage proposals just by talking to Claude.</p>
+
+<div class="card" style="margin-top:18px">
+  <strong>Your private MCP link</strong>
+  <code class="url" id="mcp">{{ mcp_url }}</code>
+  <p class="muted" style="margin-bottom:0">Treat this like a password. Anyone with it can read and change your proposals.</p>
+</div>
+
+<h2>Steps</h2>
+<ol>
+  <li>In Claude, open <strong>Settings → Connectors</strong>.</li>
+  <li>Choose <strong>Add custom connector</strong>.</li>
+  <li>Name it <em>ProposalDesk</em> and paste the link above. Leave any OAuth fields empty.</li>
+  <li>Save, then in a new chat try:<br>
+    <em>"Draft a proposal for Acme for a 3-page brand refresh, ₹60,000, valid for two weeks. Include a 50% advance."</em></li>
+  <li>Come back to <a href="/proposals">Proposals</a> to review and edit what Claude created.</li>
+</ol>
+
+<h2>Lost the link or shared it by mistake?</h2>
+<form method="post" action="/connect/rotate" onsubmit="return confirm('This disconnects Claude until you paste the new link. Continue?')">
+  <button class="btn ghost" type="submit">Generate a new link</button>
+</form>
+{% endblock %}

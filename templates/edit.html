@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ p.title or 'New proposal' }} · ProposalDesk{% endblock %}
+{% block content %}
+<p><a href="/proposals" class="muted" style="text-decoration:none">← All proposals</a></p>
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+  <h1 style="margin-right:auto">{{ 'Edit proposal' if p.id else 'New proposal' }}</h1>
+  {% if p.id %}<span class="badge {{ p.status }}">{{ p.status }}</span>{% endif %}
+</div>
+
+{% if saved %}<div class="alert ok">Saved.</div>{% endif %}
+{% if error %}<div class="alert err">{{ error }}</div>{% endif %}
+
+{% if p.id and p.share_url %}
+<div class="card" style="margin:14px 0">
+  <strong>Client link</strong> <span class="muted">(anyone with this link can view, nothing else)</span>
+  <code class="url"><a href="{{ p.share_url }}" target="_blank" rel="noopener">{{ p.share_url }}</a></code>
+</div>
+{% endif %}
+
+<form method="post" action="{{ '/proposals/' ~ p.id if p.id else '/proposals' }}" class="card" id="f">
+  <div class="row">
+    <div><label for="client_name">Client</label><input id="client_name" name="client_name" value="{{ p.client_name }}" required></div>
+    <div><label for="title">Title</label><input id="title" name="title" value="{{ p.title }}" required></div>
+  </div>
+
+  <label for="scope">Scope of work</label>
+  <textarea id="scope" name="scope" rows="7">{{ p.scope }}</textarea>
+
+  <label>Line items</label>
+  <div id="items">
+    {% for it in p['items'] %}
+    <div class="row item" style="margin-bottom:8px;align-items:center;flex-wrap:nowrap">
+      <input name="item_desc" placeholder="Description" value="{{ it.description }}" style="flex:4;min-width:0">
+      <input name="item_qty" type="number" step="any" min="0" placeholder="Qty" value="{{ '%g' % it.qty if it.qty is defined else 1 }}" style="flex:1;min-width:0">
+      <input name="item_rate" type="number" step="any" min="0" placeholder="Rate" value="{{ '%g' % it.rate if it.rate is defined else 0 }}" style="flex:1.5;min-width:0">
+      <button type="button" class="btn ghost rm" style="flex:0 0 auto;min-width:0" aria-label="Remove line">✕</button>
+    </div>
+    {% endfor %}
+  </div>
+  <button type="button" class="btn ghost" id="add">+ Add line</button>
+  <p style="text-align:right;font-size:18px"><span class="muted">Total </span><strong id="total">0.00</strong></p>
+
+  <div class="row">
+    <div><label for="currency">Currency</label>
+      <select id="currency" name="currency">
+        {% for c in ['INR','USD','EUR','GBP','AUD','CAD'] %}<option value="{{ c }}" {{ 'selected' if p.currency == c else '' }}>{{ c }}</option>{% endfor %}
+      </select></div>
+    <div><label for="valid_until">Valid until</label><input id="valid_until" name="valid_until" value="{{ p.valid_until }}" placeholder="e.g. 2026-12-01"></div>
+    {% if p.id %}<div><label for="status">Status</label>
+      <select id="status" name="status">{% for s in STATUSES %}<option {{ 'selected' if p.status == s else '' }}>{{ s }}</option>{% endfor %}</select></div>{% endif %}
+  </div>
+
+  <label for="terms">Terms</label>
+  <textarea id="terms" name="terms" rows="4">{{ p.terms }}</textarea>
+
+  <p style="margin-top:20px"><button class="btn" type="submit">Save</button></p>
+</form>
+
+{% if p.id %}
+<form method="post" action="/proposals/{{ p.id }}/delete" onsubmit="return confirm('Delete this proposal? This cannot be undone.')" style="margin-top:16px">
+  <button class="btn danger" type="submit">Delete proposal</button>
+</form>
+{% endif %}
+
+<script>
+(function () {
+  var box = document.getElementById('items');
+  function recalc() {
+    var t = 0;
+    box.querySelectorAll('.item').forEach(function (r) {
+      var q = parseFloat(r.querySelector('[name=item_qty]').value), c = parseFloat(r.querySelector('[name=item_rate]').value);
+      t += (isNaN(q) ? 1 : q) * (isNaN(c) ? 0 : c);
+    });
+    document.getElementById('total').textContent = t.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+  box.addEventListener('input', recalc);
+  box.addEventListener('click', function (e) {
+    if (e.target.classList.contains('rm') && box.querySelectorAll('.item').length > 1) { e.target.closest('.item').remove(); recalc(); }
+  });
+  document.getElementById('add').addEventListener('click', function () {
+    var clone = box.querySelector('.item').cloneNode(true);
+    clone.querySelectorAll('input').forEach(function (i) { i.value = i.name === 'item_qty' ? '1' : ''; });
+    box.appendChild(clone); recalc();
+  });
+  recalc();
+})();
+</script>
+{% endblock %}
