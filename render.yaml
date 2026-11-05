@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: proposaldesk
+    runtime: docker
+    plan: starter            # a persistent disk needs a paid instance on Render
+    healthCheckPath: /healthz
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEMO_EMAIL
+        value: demo@proposaldesk.app
+      - key: DEMO_PASSWORD
+        value: demo-pass-123     # test login for reviewers; change after review
